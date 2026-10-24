@@ -1,0 +1,8 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/metering
+    username: metering
+    password: metering
+  jpa:
+    hibernate:
+      ddl-auto: validate
