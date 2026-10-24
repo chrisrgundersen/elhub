@@ -5,4 +5,5 @@ import org.springframework.data.jpa.repository.JpaRepository
 
 interface MeteringPointRepository : JpaRepository<MeteringPointModel, Long> {
     fun existsByGsrn(gsrn: String): Boolean
+    fun findByGsrn(gsrn: String): MeteringPointModel?
 }
