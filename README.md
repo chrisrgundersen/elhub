@@ -36,6 +36,23 @@ E.g:
 2. .\gradlew test (windows)
 3. build/reports/tests/test/index.html
 
+### Test-scripts
+The scripts test-api.ps1 and test-api.sh should only be run after truncating all data from the database.
+You can do this either by logging into the postgreSQL database:
+```bash
+docker compose exec postgres psql -U metering -d metering
+```
+Then execute
+```sql
+truncate metering_point cascade;  
+```
+Alternatively you can delete the docker volumes:
+```bash
+docker compose down -v
+docker compose up -d
+```
+You need to restart the application afterward. 
+
 ## Design decisions
 - Layered architecture (controller, service, repository)
 - GSRN is used as the external identifier
