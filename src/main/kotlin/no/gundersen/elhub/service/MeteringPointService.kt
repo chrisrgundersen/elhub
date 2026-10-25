@@ -28,6 +28,6 @@ class MeteringPointService(
     }
 
     @Transactional(readOnly = true)
-    fun getById(id: Long): MeteringPointResponse =
-        meteringPointRepository.findByIdOrNull(id)?.toResponse() ?: throw MeteringPointNotFoundException(id)
+    fun getAll(): List<MeteringPointResponse> =
+        meteringPointRepository.findAll().map { it.toResponse() }
 }

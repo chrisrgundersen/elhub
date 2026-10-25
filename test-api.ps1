@@ -49,7 +49,7 @@ $to = "${nextDate}T00:00:00Z"
 # 1. Målepunkter
 # ---------------------------------------------------------------
 
-Test-Api -Title "Opprett målepunkt" -Expected "201, eller 409 hvis det finnes" `
+Test-Api -Title "Opprett maalepunkt" -Expected "201, eller 409 hvis det finnes" `
     -Method Post -Uri $BaseUrl `
     -Body "{`"gsrn`":`"$Gsrn`",`"name`":`"Testpunkt`"}"
 
@@ -61,8 +61,8 @@ Test-Api -Title "Ugyldig GSRN" -Expected "400" `
     -Method Post -Uri $BaseUrl `
     -Body '{"gsrn":"123","name":"Feil"}'
 
-Test-Api -Title "Hent målepunkt som ikke finnes" -Expected "404" `
-    -Method Get -Uri "$BaseUrl/999"
+Test-Api -Title "Hent alle maalepunkt" -Expected "200, liste med maalepunkt" `
+    -Method Get -Uri "$BaseUrl"
 
 # ---------------------------------------------------------------
 # 2. Registrer et helt døgn
@@ -83,10 +83,10 @@ Test-Api -Title "Registrer 24 timesverdier for $Date" -Expected "201" `
 # 3. Hent verdier og forbruk
 # ---------------------------------------------------------------
 
-Test-Api -Title "Hent verdier for døgnet" -Expected "24 verdier" `
+Test-Api -Title "Hent verdier for dognet" -Expected "24 verdier" `
     -Method Get -Uri "$BaseUrl/$Gsrn/readings?from=$from&to=$to"
 
-Test-Api -Title "Forbruk for døgnet" -Expected "summen av verdiene" `
+Test-Api -Title "Forbruk for dognet" -Expected "summen av verdiene" `
     -Method Get -Uri "$BaseUrl/$Gsrn/consumption?from=$from&to=$to"
 
 Test-Api -Title "Forbruk for periode uten verdier" -Expected "0" `
@@ -107,15 +107,15 @@ Test-Api -Title "Tom liste" -Expected "400" `
     -Method Post -Uri "$BaseUrl/$Gsrn/readings" `
     -Body '{"readings":[]}'
 
-Test-Api -Title "Duplikat time" -Expected "409 (gir 500 før valideringen er på plass)" `
+Test-Api -Title "Duplikat time" -Expected "409" `
     -Method Post -Uri "$BaseUrl/$Gsrn/readings" `
     -Body "{`"readings`":[{`"periodStart`":`"${Date}T10:00:00Z`",`"quantityKwh`":1.0}]}"
 
-Test-Api -Title "Tidspunkt som ikke er på hel time" -Expected "400 (lagres før valideringen er på plass)" `
+Test-Api -Title "Tidspunkt som ikke er paa hel time" -Expected "400" `
     -Method Post -Uri "$BaseUrl/$Gsrn/readings" `
     -Body "{`"readings`":[{`"periodStart`":`"${Date}T10:17:00Z`",`"quantityKwh`":1.0}]}"
 
-Test-Api -Title "Samme time to ganger i forespørselen" -Expected "400" `
+Test-Api -Title "Samme time to ganger i foresporselen" -Expected "400" `
     -Method Post -Uri "$BaseUrl/$Gsrn/readings" `
     -Body "{`"readings`":[{`"periodStart`":`"2026-10-21T10:00:00Z`",`"quantityKwh`":1.0},{`"periodStart`":`"2026-10-21T10:00:00Z`",`"quantityKwh`":2.0}]}"
 

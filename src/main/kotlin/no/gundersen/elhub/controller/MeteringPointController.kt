@@ -25,7 +25,7 @@ class MeteringPointController (
     fun create(@Valid @RequestBody request: CreateMeteringPointRequest): MeteringPointResponse =
         meteringPointService.create(request)
 
-    @GetMapping("/{id}")
-    fun getById(@PathVariable id: Long): MeteringPointResponse =
-        meteringPointService.getById(id)
+    @GetMapping
+    fun getAll(): List<MeteringPointResponse> =
+        meteringPointService.getAll()
 }
