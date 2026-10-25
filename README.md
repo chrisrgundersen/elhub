@@ -46,5 +46,5 @@ I used AI (Claude) mainly as a sparring partner: asking questions about
 concepts (e.g. layered architecture, DTO vs. entity, JPA, Testcontainers)
 and discussing alternatives. Some smaller code snippets are based on AI
 suggestions, which I have reviewed, adapted and understand. The overall
-design, structure and decisions are my own. The helper script
-`test-api.ps1` was generated with AI assistance.
+design, structure and decisions are my own. The helper scripts
+`test-api.ps1` and `test-api.sh` were generated with AI assistance.
