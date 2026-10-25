@@ -1,7 +1,6 @@
 package no.gundersen.elhub.service
 
 import no.gundersen.elhub.dto.CreateMeterReadSeriesRequest
-import no.gundersen.elhub.dto.CreateMeterReadingRequest
 import org.springframework.transaction.annotation.Transactional
 import no.gundersen.elhub.repository.MeteringPointRepository
 import no.gundersen.elhub.dto.MeterReadResponse
@@ -16,20 +15,20 @@ import no.gundersen.elhub.repository.MeterReadRepository
 
 import org.springframework.stereotype.Service
 import java.time.Instant
-import java.time.temporal.ChronoUnit
 
 
 @Service
 class MeterReadService(
     private val meterReadRepository: MeterReadRepository,
-    private val meteringPointRepository: MeteringPointRepository
+    private val meteringPointRepository: MeteringPointRepository,
+    private val validator: MeterValidator
 ) {
     @Transactional
     fun create(gsrn: String, request: CreateMeterReadSeriesRequest): List<MeterReadResponse> {
 
         val meteringPoint = meteringPointRepository.findByGsrn(gsrn) ?: throw MeteringPointNotFoundException(gsrn)
-        if (hasInvalidPeriod(request.readings)) throw InvalidMeteringReadingException(gsrn)
-        if (hasDuplicatesInRequest(request.readings)) throw DuplicateInRequestException(gsrn)
+        if (validator.hasInvalidPeriod(request.readings)) throw InvalidMeteringReadingException(gsrn)
+        if (validator.hasDuplicatesInRequest(request.readings)) throw DuplicateInRequestException(gsrn)
 
         val meterReads = request.readings.map { reading ->
             MeterReadModel(
@@ -40,21 +39,6 @@ class MeterReadService(
         }
 
         return meterReadRepository.saveAll(meterReads).map { it.toResponse() }
-    }
-
-    //Improvement for debugging - include which periods that are invalid
-    private fun hasInvalidPeriod(meterData: List<CreateMeterReadingRequest>) : Boolean {
-        val periods = meterData.map {it.periodStart}
-        for (period in periods) {
-            if (period != period.truncatedTo(ChronoUnit.HOURS)) return true
-        }
-        return false
-    }
-    //Improvement for debugging - include which periods that are duplicates
-    private fun hasDuplicatesInRequest(meterData: List<CreateMeterReadingRequest>) : Boolean {
-        val periods = meterData.map {it.periodStart}
-        val duplicates = periods.size != periods.toSet().size
-        return duplicates
     }
 
     @Transactional(readOnly = true)
