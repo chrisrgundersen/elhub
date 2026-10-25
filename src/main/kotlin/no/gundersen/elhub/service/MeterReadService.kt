@@ -1,18 +1,22 @@
 package no.gundersen.elhub.service
 
 import no.gundersen.elhub.dto.CreateMeterReadSeriesRequest
+import no.gundersen.elhub.dto.CreateMeterReadingRequest
 import org.springframework.transaction.annotation.Transactional
 import no.gundersen.elhub.repository.MeteringPointRepository
 import no.gundersen.elhub.dto.MeterReadResponse
 import no.gundersen.elhub.dto.MeterReadSumResponse
 import no.gundersen.elhub.exception.MeteringPointNotFoundException
 import no.gundersen.elhub.dto.toResponse
+import no.gundersen.elhub.exception.DuplicateInRequestException
+import no.gundersen.elhub.exception.InvalidMeteringReadingException
 import no.gundersen.elhub.model.MeterReadModel
 import no.gundersen.elhub.repository.MeterReadRepository
 
 
 import org.springframework.stereotype.Service
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 
 
 @Service
@@ -22,7 +26,10 @@ class MeterReadService(
 ) {
     @Transactional
     fun create(gsrn: String, request: CreateMeterReadSeriesRequest): List<MeterReadResponse> {
+
         val meteringPoint = meteringPointRepository.findByGsrn(gsrn) ?: throw MeteringPointNotFoundException(gsrn)
+        if (hasInvalidPeriod(request.readings)) throw InvalidMeteringReadingException(gsrn)
+        if (hasDuplicatesInRequest(request.readings)) throw DuplicateInRequestException(gsrn)
 
         val meterReads = request.readings.map { reading ->
             MeterReadModel(
@@ -35,11 +42,27 @@ class MeterReadService(
         return meterReadRepository.saveAll(meterReads).map { it.toResponse() }
     }
 
+    //Improvement for debugging - include which periods that are invalid
+    private fun hasInvalidPeriod(meterData: List<CreateMeterReadingRequest>) : Boolean {
+        val periods = meterData.map {it.periodStart}
+        for (period in periods) {
+            if (period != period.truncatedTo(ChronoUnit.HOURS)) return true
+        }
+        return false
+    }
+    //Improvement for debugging - include which periods that are duplicates
+    private fun hasDuplicatesInRequest(meterData: List<CreateMeterReadingRequest>) : Boolean {
+        val periods = meterData.map {it.periodStart}
+        val duplicates = periods.size != periods.toSet().size
+        return duplicates
+    }
+
     @Transactional(readOnly = true)
     fun getReadings(gsrn: String, from: Instant, to: Instant): List<MeterReadResponse> {
-        val meteringPoint = meteringPointRepository.findByGsrn(gsrn) ?: throw MeteringPointNotFoundException(gsrn)
 
-        return meterReadRepository.findInPeriod(meteringPoint, from, to).map { it.toResponse() }
+        val meteringPoint = meteringPointRepository.findByGsrn(gsrn) ?: throw MeteringPointNotFoundException(gsrn)
+        val meterData = meterReadRepository.findInPeriod(meteringPoint, from, to).map { it.toResponse() }
+        return meterData
     }
 
     @Transactional(readOnly = true)
